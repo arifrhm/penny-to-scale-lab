@@ -119,39 +119,47 @@ if [[ "${1:-}" == "--append-changelog" ]]; then
     CHANGELOG_ENTRY="
 ## [${VERSION}] - ${DATE_STR} - ${TITLE}
 
-### 💻 System & Environment Telemetry
+### 💻 System & Environment Telemetry / Telemetri Lingkungan Sistem
 - **Host CPU:** ${CPU_MODEL} (${VCPU_COUNT} vCPUs)
 - **Memory (RAM):** ${TOTAL_RAM} Total
-- **Operating System:** ${OS_KERNEL}
+- **Operating System / Sistem Operasi:** ${OS_KERNEL}
 - **Runtime:** ${GO_VERSION}
-- **Load Tool:** bombardier v1.2.6 (${CONNECTIONS} connections, ${DURATION} duration, ~1KB JSON payload)
+- **Load Tool / Alat Uji:** bombardier v1.2.6 (${CONNECTIONS} connections, ${DURATION} duration, ~1KB JSON payload)
 
-### 📊 Benchmark Results
-| Metric Category | Metric Name | Measured Value | Unit / Note |
+### 📊 Benchmark Results / Hasil Pengujian Benchmark
+| Metric Category / Kategori | Metric Name / Nama Metrik | Measured Value / Nilai Riil | Unit & Notes / Satuan & Catatan |
 | :--- | :--- | :--- | :--- |
-| **Throughput** | Mean Request Rate | **${RPS}** | requests/sec |
-| **Total Volume** | Successful 2xx Requests | **${ERRORS_2XX}** | requests in ${DURATION} |
-| **Tail Latency** | Median (p50) | **${P50_MS}** | milliseconds |
-| **Tail Latency** | 90th percentile (p90) | **${P90_MS}** | milliseconds |
-| **Tail Latency** | 99th percentile (p99) | **${P99_MS}** | milliseconds |
-| **Memory Alloc** | Per-operation Heap Alloc | **${B_OP}** | Bytes/op (reflection overhead) |
-| **Memory Alloc** | Per-operation Allocs Count | **${ALLOCS_OP}** | allocs/op |
+| **Throughput** | Mean Request Rate | **${RPS}** | requests/sec (RPS) |
+| **Total Volume** | Successful 2xx Requests | **${ERRORS_2XX}** | requests in ${DURATION} (0 errors / 100% 2xx) |
+| **Tail Latency** | Median (p50) | **${P50_MS}** | milliseconds (ms) |
+| **Tail Latency** | 90th percentile (p90) | **${P90_MS}** | milliseconds (ms) |
+| **Tail Latency** | 99th percentile (p99) | **${P99_MS}** | milliseconds (ms) |
+| **Memory Alloc** | Per-operation Heap Alloc | **${B_OP}** | Bytes/op (\`B/op\` reflection overhead) |
+| **Memory Alloc** | Per-operation Allocs Count | **${ALLOCS_OP}** | allocs/op (heap allocations per request) |
 | **Microbenchmark**| Single Operation Duration | **${NS_OP}** | ns/op |
 | **Process RSS** | Baseline -> Peak RAM | **${BASELINE_RSS_MB} MB -> ${PEAK_RSS_MB} MB** | Resident Set Size |
 
-### 🛠️ Architectural Details
-- Standalone HTTP server on standard library \`net/http\`.
-- \`io.ReadAll(r.Body)\` buffers full incoming payload in heap.
-- Reflection-based \`encoding/json.Unmarshal\` into struct.
-- SHA-256 enrichment and validation.
-- Reflection-based \`encoding/json.Marshal\` serialization.
+### 🛠️ Architectural Details / Rincian Arsitektur
+- **English:**
+  - Standalone HTTP server on standard library \`net/http\`.
+  - \`io.ReadAll(r.Body)\` buffers full incoming payload in heap for every request.
+  - Reflection-based \`encoding/json.Unmarshal\` into struct.
+  - SHA-256 enrichment and input validation.
+  - Reflection-based \`encoding/json.Marshal\` serialization.
+- **Bahasa Indonesia:**
+  - Server HTTP mandiri berbasis library standar \`net/http\`.
+  - \`io.ReadAll(r.Body)\` mengalokasikan slice baru di heap untuk membaca seluruh body pada setiap request.
+  - Parsing JSON berbasis refleksi menggunakan \`encoding/json.Unmarshal\`.
+  - Pengayaan (*enrichment*) checksum SHA-256 dan validasi field.
+  - Serialisasi JSON balasan menggunakan \`encoding/json.Marshal\` standar.
 "
 
     CHANGELOG_FILE="${ROOT_DIR}/CHANGELOG.md"
     if [[ ! -f "${CHANGELOG_FILE}" ]]; then
         echo "# Changelog - Penny to Scale Lab" > "${CHANGELOG_FILE}"
         echo "" >> "${CHANGELOG_FILE}"
-        echo "Semua benchmark dijalankan secara otomatis dengan data resource hardware riil terlampir pada setiap rilis arsitektur." >> "${CHANGELOG_FILE}"
+        echo "All benchmarks are executed automatically with real hardware resource telemetry attached to each architectural release." >> "${CHANGELOG_FILE}"
+        echo "*Semua benchmark dijalankan secara otomatis dengan data resource hardware riil terlampir pada setiap rilis arsitektur.*" >> "${CHANGELOG_FILE}"
     fi
 
     echo "${CHANGELOG_ENTRY}" >> "${CHANGELOG_FILE}"
