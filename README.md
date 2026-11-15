@@ -35,7 +35,7 @@
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | **v0.1.0** | `net/http` + `encoding/json` + `io.ReadAll` (Naive) | **41,966 req/s** | **19.41 ms** | **10,574 B/op** | **79 allocs/op** | 🟢 **Released** |
 | **v0.2.0** | Buffer & Struct Recycling via `sync.Pool` | **43,647 req/s** | **16.64 ms** | **8,020 B/op** | **71 allocs/op** | 🟢 **Released** |
-| *v0.3.0* | Zero-Reflection JSON Serializer (`bytedance/sonic` / `easyjson`) | *TBD* | *TBD* | *TBD* | *TBD* | ⚪ *Planned* |
+| **v0.3.0** | JIT/SIMD Zero-Reflection JSON (`bytedance/sonic`) | **73,610 req/s** | **10.29 ms** | **9,619 B/op** | **40 allocs/op** | 🟢 **Released** |
 | *v0.4.0* | High-Performance Engine (`valyala/fasthttp` + SIMD) | *TBD* | *TBD* | *TBD* | *TBD* | ⚪ *Planned* |
 
 ---

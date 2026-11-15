@@ -27,17 +27,23 @@ func main() {
 
 	mode := os.Getenv("HANDLER_MODE")
 	if mode == "" {
-		mode = "pooled" // Default to v0.2.0 pooled handler
+		mode = "sonic" // Default to v0.3.0 Sonic JIT/SIMD handler
 	}
 
 	naiveHandler := handler.NewNaiveHandler(workerID)
 	pooledHandler := handler.NewPooledHandler(workerID)
+	sonicHandler := handler.NewSonicHandler(workerID)
 
 	mux := http.NewServeMux()
 
-	versionStr := "0.2.0-pooled"
-	if mode == "naive" {
+	versionStr := "0.3.0-sonic"
+	switch mode {
+	case "naive":
 		versionStr = "0.1.0-naive"
+	case "pooled":
+		versionStr = "0.2.0-pooled"
+	case "sonic":
+		versionStr = "0.3.0-sonic"
 	}
 
 	// 1. Healthcheck
@@ -48,15 +54,19 @@ func main() {
 	})
 
 	// 2. Primary Event Ingestion endpoint based on HANDLER_MODE
-	if mode == "naive" {
+	switch mode {
+	case "naive":
 		mux.Handle("/events", naiveHandler)
-	} else {
+	case "pooled":
 		mux.Handle("/events", pooledHandler)
+	default:
+		mux.Handle("/events", sonicHandler)
 	}
 
 	// Explicit versioned endpoints for direct testing
 	mux.Handle("/events/naive", naiveHandler)
 	mux.Handle("/events/pooled", pooledHandler)
+	mux.Handle("/events/sonic", sonicHandler)
 
 	// 3. Mount pprof for memory & cpu profiling
 	mux.Handle("/debug/pprof/", http.DefaultServeMux)
