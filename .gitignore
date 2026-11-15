@@ -1,0 +1,16 @@
+# Binaries
+bin/
+server
+*.exe
+*.test
+*.out
+
+# Profiling and dumps
+*.pprof
+cpu.prof
+mem.prof
+
+# OS & IDE
+.DS_Store
+.idea/
+.vscode/
