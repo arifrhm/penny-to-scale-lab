@@ -40,3 +40,40 @@ All benchmarks are executed automatically with real hardware resource telemetry 
   - Parsing JSON berbasis refleksi menggunakan `encoding/json.Unmarshal`.
   - Pengayaan (*enrichment*) checksum SHA-256 dan validasi field.
   - Serialisasi JSON balasan menggunakan `encoding/json.Marshal` standar.
+
+## [0.2.0] - 2026-11-15 - Buffer & Struct Recycling via sync.Pool
+
+### 💻 System & Environment Telemetry / Telemetri Lingkungan Sistem
+- **Host CPU:** Intel(R) Xeon(R) Platinum 8173M CPU @ 2.00GHz (10 vCPUs)
+- **Memory (RAM):** 23Gi Total
+- **Operating System / Sistem Operasi:** Linux 6.8.0-147-generic x86_64
+- **Runtime:** go1.23.2 linux/amd64
+- **Load Tool / Alat Uji:** bombardier v1.2.6 (125 connections, 10s duration, ~1KB JSON payload)
+
+### 📊 Benchmark Results / Hasil Pengujian Benchmark
+| Metric Category / Kategori | Metric Name / Nama Metrik | Measured Value / Nilai Riil | Unit & Notes / Satuan & Catatan |
+| :--- | :--- | :--- | :--- |
+| **Throughput** | Mean Request Rate | **43647.78** | requests/sec (RPS) |
+| **Total Volume** | Successful 2xx Requests | **437008** | requests in 10s (0 errors / 100% 2xx) |
+| **Tail Latency** | Median (p50) | **1.13** | milliseconds (ms) |
+| **Tail Latency** | 90th percentile (p90) | **9.31** | milliseconds (ms) |
+| **Tail Latency** | 99th percentile (p99) | **16.64** | milliseconds (ms) |
+| **Memory Alloc** | Per-operation Heap Alloc | **8020** | Bytes/op (`B/op` memory allocation) |
+| **Memory Alloc** | Per-operation Allocs Count | **71** | allocs/op (heap allocations per request) |
+| **Microbenchmark**| Single Operation Duration | **47582** | ns/op |
+| **Process RSS** | Baseline -> Peak RAM | **7.71 MB -> 16.33 MB** | Resident Set Size |
+
+### 🛠️ Architectural Details / Rincian Arsitektur
+- **English:**
+  - Introduced `sync.Pool` byte buffer recycling (`bufferPool`) for incoming request body and response serialization, eliminating dynamic buffer allocations.
+  - Introduced `sync.Pool` struct recycling (`eventRequestPool`) with capacity preservation for `Tags` slice and built-in `clear()` for `Metadata` map.
+  - Introduced `hasherPool` to recycle `sha256.New()` instances across concurrent requests.
+  - Eliminated `fmt.Sprintf` heap churn in audit hash using `strconv.AppendInt` with stack scratch buffer.
+  - Memory heap allocations slashed from **10,574 B/op** down to **8020 B/op** (-24.1% reduction).
+- **Bahasa Indonesia:**
+  - Penerapan daur ulang buffer byte `sync.Pool` (`bufferPool`) untuk membaca body dan serialisasi balasan, menghapus realokasi buffer dinamis.
+  - Penerapan `sync.Pool` untuk struct request (`eventRequestPool`) dengan menjaga kapasitas slice `Tags` dan fungsi native `clear()` untuk map `Metadata`.
+  - Penerapan `hasherPool` untuk mendaur ulang instance `sha256.New()` di seluruh thread konkurensi.
+  - Mengeliminasi alokasi string heap dari `fmt.Sprintf` pada audit hash dengan `strconv.AppendInt` dan buffer stack scratch.
+  - Pemotongan alokasi heap dari **10.574 B/op** turun menjadi **8020 B/op** (penghematan ~24,1%).
+
