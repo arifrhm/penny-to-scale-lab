@@ -28,15 +28,21 @@ func main() {
 
 	mode := os.Getenv("HANDLER_MODE")
 	if mode == "" {
-		mode = "fasthttp" // Default to v0.4.0 FastHTTP high-performance engine
+		mode = "zeroalloc" // Default to v0.5.0 Zero-Alloc Engine
 	}
 
 	stopChan := make(chan os.Signal, 1)
 	signal.Notify(stopChan, os.Interrupt, syscall.SIGTERM)
 
-	// Mode 4: FastHTTP High-Performance Engine (V0.4.0)
-	if mode == "fasthttp" {
+	// Mode 5 & 4: FastHTTP Engine (ZeroAlloc & FastHTTP)
+	if mode == "zeroalloc" || mode == "fasthttp" {
 		fastHandler := handler.NewFastHTTPHandler(workerID)
+		zeroHandler := handler.NewZeroAllocHandler(workerID)
+
+		versionStr := "0.5.0-zeroalloc"
+		if mode == "fasthttp" {
+			versionStr = "0.4.0-fasthttp"
+		}
 
 		router := func(ctx *fasthttp.RequestCtx) {
 			path := string(ctx.Path())
@@ -44,8 +50,16 @@ func main() {
 			case "/health":
 				ctx.SetContentType("application/json")
 				ctx.SetStatusCode(fasthttp.StatusOK)
-				ctx.SetBodyString(`{"status":"HEALTHY","version":"0.4.0-fasthttp","mode":"fasthttp"}`)
+				ctx.SetBodyString(fmt.Sprintf(`{"status":"HEALTHY","version":"%s","mode":"%s"}`, versionStr, mode))
 			case "/events":
+				if mode == "zeroalloc" {
+					zeroHandler.HandleFastHTTP(ctx)
+				} else {
+					fastHandler.HandleFastHTTP(ctx)
+				}
+			case "/events/zeroalloc":
+				zeroHandler.HandleFastHTTP(ctx)
+			case "/events/fasthttp":
 				fastHandler.HandleFastHTTP(ctx)
 			default:
 				ctx.SetStatusCode(fasthttp.StatusNotFound)
@@ -63,7 +77,7 @@ func main() {
 		}
 
 		go func() {
-			log.Printf("🚀 [V0.4.0-fasthttp] Server listening on :%s (Mode: fasthttp, Worker: %s)", port, workerID)
+			log.Printf("🚀 [V%s] Server listening on :%s (Mode: %s, Worker: %s)", versionStr, port, mode, workerID)
 			if err := server.ListenAndServe(":" + port); err != nil {
 				log.Fatalf("FastHTTP ListenAndServe failed: %v", err)
 			}
@@ -97,7 +111,7 @@ func main() {
 
 	// 1. Healthcheck
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(fmt.Sprintf(`{"status":"HEALTHY","version":"%s","mode":"%s"}`, versionStr, mode)))
 	})
