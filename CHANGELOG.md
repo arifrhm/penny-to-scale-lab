@@ -112,3 +112,42 @@ All benchmarks are executed automatically with real hardware resource telemetry 
   - Memangkas frekuensi operasi alokasi heap hampir separuh dari **71 allocs/op** turun menjadi **40 allocs/op** (pengurangan -43,7%).
   - Kecepatan eksekusi mikro meningkat drastis dari **47.582 ns/op** menjadi **27704 ns/op** (lebih dari **2x lipat lebih cepat**).
 
+
+## [0.4.0] - 2026-11-15 - High-Performance Engine (valyala/fasthttp + SIMD)
+
+### 💻 System & Environment Telemetry / Telemetri Lingkungan Sistem
+- **Host CPU:** Intel(R) Xeon(R) Platinum 8173M CPU @ 2.00GHz (10 vCPUs)
+- **Memory (RAM):** 23Gi Total
+- **Operating System / Sistem Operasi:** Linux 6.8.0-147-generic x86_64
+- **Runtime:** go1.23.2 linux/amd64
+- **Load Tool / Alat Uji:** bombardier v1.2.6 (125 connections, 10s duration, ~1KB JSON payload)
+
+### 📊 Benchmark Results / Hasil Pengujian Benchmark
+| Metric Category / Kategori | Metric Name / Nama Metrik | Measured Value / Nilai Riil | Unit & Notes / Satuan & Catatan |
+| :--- | :--- | :--- | :--- |
+| **Throughput** | Mean Request Rate | **83870.27** | requests/sec (RPS) |
+| **Total Volume** | Successful 2xx Requests | **819194** | requests in 10s (0 errors / 100% 2xx) |
+| **Tail Latency** | Median (p50) | **0.99** | milliseconds (ms) |
+| **Tail Latency** | 90th percentile (p90) | **2.70** | milliseconds (ms) |
+| **Tail Latency** | 99th percentile (p99) | **10.76** | milliseconds (ms) |
+| **Memory Alloc** | Per-operation Heap Alloc | **1854** | Bytes/op (`B/op` memory allocation) |
+| **Memory Alloc** | Per-operation Allocs Count | **20** | allocs/op (heap allocations per request) |
+| **Microbenchmark**| Single Operation Duration | **11527** | ns/op |
+| **Process RSS** | Baseline -> Peak RAM | **14.59 MB -> 30.25 MB** | Resident Set Size |
+
+### 🛠️ Architectural Details / Rincian Arsitektur
+- **English:**
+  - Transitioned from standard library `net/http` to ultra-high performance `valyala/fasthttp` engine.
+  - Zero-copy request body access via `ctx.PostBody()` directly reading from connection buffers without heap duplication.
+  - Internal `fasthttp` worker pool connection recycling eliminating per-connection goroutine overhead.
+  - Combined with ByteDance Sonic (`bytedance/sonic`) JIT/SIMD zero-reflection JSON parsing.
+  - Memory heap allocations crushed down to **1854 B/op** and **20 allocs/op** (-81% memory reduction vs baseline).
+  - Microbenchmark execution duration collapsed to **11527 ns/op** (nearly 6x faster than naive baseline).
+- **Bahasa Indonesia:**
+  - Transisi dari library standar `net/http` ke engine berkinerja tinggi `valyala/fasthttp`.
+  - Akses body request zero-copy via `ctx.PostBody()` langsung membaca buffer koneksi tanpa duplikasi alokasi heap.
+  - Daur ulang koneksi internal worker pool fasthttp menghapus overhead spawning goroutine baru per koneksi.
+  - Dikombinasikan dengan parser JSON JIT/SIMD tanpa refleksi ByteDance Sonic (`bytedance/sonic`).
+  - Alokasi memori heap terpangkas tuntas menjadi **1854 B/op** dan **20 allocs/op** (pengurangan alokasi >80% vs baseline).
+  - Durasi eksekusi mikro anjlok ke **11527 ns/op** (hampir 6x lipat lebih kencang dibanding baseline naif).
+

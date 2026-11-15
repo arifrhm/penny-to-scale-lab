@@ -11,6 +11,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/valyala/fasthttp"
 	"github.com/arifrhm/penny-to-scale-lab/internal/handler"
 )
 
@@ -27,9 +28,57 @@ func main() {
 
 	mode := os.Getenv("HANDLER_MODE")
 	if mode == "" {
-		mode = "sonic" // Default to v0.3.0 Sonic JIT/SIMD handler
+		mode = "fasthttp" // Default to v0.4.0 FastHTTP high-performance engine
 	}
 
+	stopChan := make(chan os.Signal, 1)
+	signal.Notify(stopChan, os.Interrupt, syscall.SIGTERM)
+
+	// Mode 4: FastHTTP High-Performance Engine (V0.4.0)
+	if mode == "fasthttp" {
+		fastHandler := handler.NewFastHTTPHandler(workerID)
+
+		router := func(ctx *fasthttp.RequestCtx) {
+			path := string(ctx.Path())
+			switch path {
+			case "/health":
+				ctx.SetContentType("application/json")
+				ctx.SetStatusCode(fasthttp.StatusOK)
+				ctx.SetBodyString(`{"status":"HEALTHY","version":"0.4.0-fasthttp","mode":"fasthttp"}`)
+			case "/events":
+				fastHandler.HandleFastHTTP(ctx)
+			default:
+				ctx.SetStatusCode(fasthttp.StatusNotFound)
+				ctx.SetBodyString("Not Found")
+			}
+		}
+
+		server := &fasthttp.Server{
+			Handler:            router,
+			Name:               "PennyToScale-FastHTTP",
+			Concurrency:        256 * 1024,
+			ReadTimeout:        10 * time.Second,
+			WriteTimeout:       10 * time.Second,
+			MaxRequestBodySize: 10 * 1024 * 1024,
+		}
+
+		go func() {
+			log.Printf("🚀 [V0.4.0-fasthttp] Server listening on :%s (Mode: fasthttp, Worker: %s)", port, workerID)
+			if err := server.ListenAndServe(":" + port); err != nil {
+				log.Fatalf("FastHTTP ListenAndServe failed: %v", err)
+			}
+		}()
+
+		<-stopChan
+		log.Println("🛑 Shutting down FastHTTP server gracefully...")
+		if err := server.Shutdown(); err != nil {
+			log.Printf("FastHTTP shutdown error: %v", err)
+		}
+		log.Println("✅ FastHTTP server stopped gracefully")
+		return
+	}
+
+	// Net/HTTP Modes (Naive, Pooled, Sonic)
 	naiveHandler := handler.NewNaiveHandler(workerID)
 	pooledHandler := handler.NewPooledHandler(workerID)
 	sonicHandler := handler.NewSonicHandler(workerID)
@@ -63,7 +112,7 @@ func main() {
 		mux.Handle("/events", sonicHandler)
 	}
 
-	// Explicit versioned endpoints for direct testing
+	// Explicit versioned endpoints
 	mux.Handle("/events/naive", naiveHandler)
 	mux.Handle("/events/pooled", pooledHandler)
 	mux.Handle("/events/sonic", sonicHandler)
@@ -78,9 +127,6 @@ func main() {
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  60 * time.Second,
 	}
-
-	stopChan := make(chan os.Signal, 1)
-	signal.Notify(stopChan, os.Interrupt, syscall.SIGTERM)
 
 	go func() {
 		log.Printf("🚀 [V%s] Server listening on :%s (Mode: %s, Worker: %s)", versionStr, port, mode, workerID)
