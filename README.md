@@ -40,6 +40,9 @@
 | **v0.5.0** | Zero-Alloc In-Place Parsing (`fasthttp` + `jsonparser`) | **114,384 req/s** | **6.50 ms** | **0 B/op** | **0 allocs/op** | 🟢 **Released** |
 | **v0.6.0** | Lock-Free Ring Buffer Ingestion (LMAX Disruptor Pattern) | **119,940 req/s** | **9.69 ms** | **0 B/op** | **0 allocs/op** | 🟢 **Released** |
 
+📖 **When to use what?** Read our comprehensive guide:  
+👉 **[Architectural Decision Matrix & Production Sweet Spots (Bilingual Guide)](./docs/architectural_tradeoffs.md)**
+
 ### 🔬 Visual Profiling & Flamegraphs
 Interactive vector SVG profile visualizations comparing baseline vs zero-allocation:
 * [v0.1.0 Naive Heap Allocation Profile (10.5 KB)](./docs/flamegraphs/v010_heap.svg) vs [v0.6.0 Zero-Alloc Heap Profile (0 B/op)](./docs/flamegraphs/v060_heap.svg)
@@ -54,8 +57,11 @@ Interactive vector SVG profile visualizations comparing baseline vs zero-allocat
 2. **Nol Kebocoran Data Produksi (100% Sintetis & Terbuka):** Semua pengujian menggunakan data sintetis (~1KB payload telemetri/transaksi) dan dijalankan di mesin lab pribadi. Nol data rahasia perusahaan, 100% mematuhi etika kerahasiaan NDA.
 3. **Continuous Benchmark Changelog:** Setiap commit atau perubahan arsitektur yang mengubah cara server memproses request **WAJIB** melampirkan tabel benchmark dan spesifikasi resource perangkat keras di [`CHANGELOG.md`](./CHANGELOG.md).
 
-### 📈 Ringkasan Metrik Lintas Versi
+### 📈 Ringkasan Metrik Lintas Versi & Titik Optimal Produksi
 Lihat tabel perbandingan performa pada seksi [Evolution Matrix](#-evolution-matrix-across-versions) di atas. Log pengujian mendalam setiap rilis tercatat lengkap di dokumen [`CHANGELOG.md`](./CHANGELOG.md).
+
+📖 **Kapan solusi ini tepat digunakan di dunia nyata?** Baca panduan komparatif arsitektur lengkap:  
+👉 **[Panduan Matriks Keputusan Arsitektur & Titik Optimal Produksi (Dwibahasa)](./docs/architectural_tradeoffs.md)**
 
 ---
 
