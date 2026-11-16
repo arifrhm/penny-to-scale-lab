@@ -34,13 +34,18 @@ func main() {
 	stopChan := make(chan os.Signal, 1)
 	signal.Notify(stopChan, os.Interrupt, syscall.SIGTERM)
 
-	// Mode 5 & 4: FastHTTP Engine (ZeroAlloc & FastHTTP)
-	if mode == "zeroalloc" || mode == "fasthttp" {
+	// Mode 6, 5 & 4: FastHTTP Engine (RingBuffer, ZeroAlloc & FastHTTP)
+	if mode == "ringbuffer" || mode == "zeroalloc" || mode == "fasthttp" {
 		fastHandler := handler.NewFastHTTPHandler(workerID)
 		zeroHandler := handler.NewZeroAllocHandler(workerID)
+		ringHandler := handler.NewRingBufferHandler(workerID, 4)
+		defer ringHandler.Close()
 
-		versionStr := "0.5.0-zeroalloc"
-		if mode == "fasthttp" {
+		versionStr := "0.6.0-ringbuffer"
+		switch mode {
+		case "zeroalloc":
+			versionStr = "0.5.0-zeroalloc"
+		case "fasthttp":
 			versionStr = "0.4.0-fasthttp"
 		}
 
@@ -50,13 +55,18 @@ func main() {
 			case "/health":
 				ctx.SetContentType("application/json")
 				ctx.SetStatusCode(fasthttp.StatusOK)
-				ctx.SetBodyString(fmt.Sprintf(`{"status":"HEALTHY","version":"%s","mode":"%s"}`, versionStr, mode))
+				ctx.SetBodyString(fmt.Sprintf(`{"status":"HEALTHY","version":"%s","mode":"%s","ring_consumed":%d,"ring_dropped":%d}`, versionStr, mode, ringHandler.ConsumedCount(), ringHandler.DroppedCount()))
 			case "/events":
-				if mode == "zeroalloc" {
+				switch mode {
+				case "ringbuffer":
+					ringHandler.HandleFastHTTP(ctx)
+				case "zeroalloc":
 					zeroHandler.HandleFastHTTP(ctx)
-				} else {
+				default:
 					fastHandler.HandleFastHTTP(ctx)
 				}
+			case "/events/ringbuffer":
+				ringHandler.HandleFastHTTP(ctx)
 			case "/events/zeroalloc":
 				zeroHandler.HandleFastHTTP(ctx)
 			case "/events/fasthttp":

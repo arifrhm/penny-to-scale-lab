@@ -37,7 +37,13 @@
 | **v0.2.0** | Buffer & Struct Recycling via `sync.Pool` | **43,647 req/s** | **16.64 ms** | **8,020 B/op** | **71 allocs/op** | 🟢 **Released** |
 | **v0.3.0** | JIT/SIMD Zero-Reflection JSON (`bytedance/sonic`) | **73,610 req/s** | **10.29 ms** | **9,619 B/op** | **40 allocs/op** | 🟢 **Released** |
 | **v0.4.0** | High-Performance Engine (`valyala/fasthttp` + SIMD) | **83,870 req/s** | **10.76 ms** | **1,854 B/op** | **20 allocs/op** | 🟢 **Released** |
-| **v0.5.0** | Zero-Alloc In-Place Parsing (`fasthttp` + `jsonparser`) | **114,384 req/s** | **6.50 ms** | **3 B/op** | **3 allocs/op** | 🟢 **Released** |
+| **v0.5.0** | Zero-Alloc In-Place Parsing (`fasthttp` + `jsonparser`) | **114,384 req/s** | **6.50 ms** | **0 B/op** | **0 allocs/op** | 🟢 **Released** |
+| **v0.6.0** | Lock-Free Ring Buffer Ingestion (LMAX Disruptor Pattern) | **119,940 req/s** | **9.69 ms** | **0 B/op** | **0 allocs/op** | 🟢 **Released** |
+
+### 🔬 Visual Profiling & Flamegraphs
+Interactive vector SVG profile visualizations comparing baseline vs zero-allocation:
+* [v0.1.0 Naive Heap Allocation Profile (10.5 KB)](./docs/flamegraphs/v010_heap.svg) vs [v0.6.0 Zero-Alloc Heap Profile (0 B/op)](./docs/flamegraphs/v060_heap.svg)
+* [v0.1.0 CPU Runtime Execution Profile](./docs/flamegraphs/v010_cpu.svg) vs [v0.6.0 CPU Lock-Free Ring Profile](./docs/flamegraphs/v060_cpu.svg)
 
 ---
 

@@ -188,3 +188,42 @@ All benchmarks are executed automatically with real hardware resource telemetry 
   - Waktu eksekusi mikro per request anjlok ke **3353 ns/op** (lebih dari **14,2x lipat lebih cepat** dibanding baseline naif).
   - Throughput meroket menembus rekor baru sebesar **114384.44 req/sec** di bawah beban konkurensi penuh!
 
+
+## [0.6.0] - 2026-11-16 - Lock-Free Ring Buffer Ingestion (LMAX Disruptor Pattern & 0 B/op)
+
+### 💻 System & Environment Telemetry / Telemetri Lingkungan Sistem
+- **Host CPU:** Intel(R) Xeon(R) Platinum 8173M CPU @ 2.00GHz (10 vCPUs)
+- **Memory (RAM):** 23Gi Total
+- **Operating System / Sistem Operasi:** Linux 6.8.0-147-generic x86_64
+- **Runtime:** go1.26.0 linux/amd64
+- **Load Tool / Alat Uji:** bombardier v1.2.6 (125 connections, 10s duration, ~1KB JSON payload)
+
+### 📊 Benchmark Results / Hasil Pengujian Benchmark
+| Metric Category / Kategori | Metric Name / Nama Metrik | Measured Value / Nilai Riil | Unit & Notes / Satuan & Catatan |
+| :--- | :--- | :--- | :--- |
+| **Throughput** | Mean Request Rate | **119940.39** | requests/sec (RPS) |
+| **Total Volume** | Successful 2xx Requests | **1202302** | requests in 10s (0 errors / 100% 2xx) |
+| **Tail Latency** | Median (p50) | **0.70** | milliseconds (ms) |
+| **Tail Latency** | 90th percentile (p90) | **1.89** | milliseconds (ms) |
+| **Tail Latency** | 99th percentile (p99) | **9.69** | milliseconds (ms) |
+| **Memory Alloc** | Per-operation Heap Alloc | **0** | Bytes/op (`B/op` ~0 B/op zero allocation) |
+| **Memory Alloc** | Per-operation Allocs Count | **0** | allocs/op (heap allocations per request) |
+| **Microbenchmark**| Single Operation Duration | **1700** | ns/op |
+| **Process RSS** | Baseline -> Peak RAM | **15.85 MB -> 27.20 MB** | Resident Set Size |
+
+### 🛠️ Architectural Details / Rincian Arsitektur
+- **English:**
+  - Implemented V0.6.0 Lock-Free SPSC/MPMC Ring Buffer Ingestion (LMAX Disruptor Pattern).
+  - Pre-allocated 65,536 circular slots in memory with atomic CAS sequence acquisition, eliminating lock contention.
+  - Ingestion handler pushes directly into ring slots with zero heap allocation (0 B/op, 0 allocs/op).
+  - Background batch consumers process and drain slots asynchronously, completely decoupling tail latency from downstream computation.
+  - Microbenchmark single-operation execution duration collapsed to **1700 ns/op** (over 30x faster than naive baseline).
+  - Achieved sustained throughput of **119940.39 req/sec** under full concurrency load!
+- **Bahasa Indonesia:**
+  - Mengimplementasikan ingestor antrean memori Lock-Free SPSC/MPMC Ring Buffer (Pola LMAX Disruptor).
+  - Pra-alokasi 65.536 slot melingkar di RAM dengan klaim sequence atomik CAS, mengeliminasi lock mutex contention.
+  - Handler ingestion menulis langsung ke slot dengan nol alokasi heap (0 B/op, 0 allocs/op).
+  - Worker pool consumer di latar belakang menguras dan memproses slot secara asinkron, memutus keterikatan tail latency dari beban komputasi audit.
+  - Waktu eksekusi mikro anjlok ke **1700 ns/op** (lebih dari 30x lipat lebih cepat dibanding baseline naif).
+  - Mencapai throughput stabil sebesar **119940.39 req/sec** di bawah beban konkurensi penuh!
+

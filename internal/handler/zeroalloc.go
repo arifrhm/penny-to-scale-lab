@@ -13,6 +13,8 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
+var colonByte = []byte{':'}
+
 type zeroAllocResources struct {
 	hasher   hash.Hash
 	sumBuf   [32]byte
@@ -103,11 +105,11 @@ func (h *ZeroAllocHandler) HandleFastHTTP(ctx *fasthttp.RequestCtx) {
 	// 3. Audit Hash
 	res.hasher.Reset()
 	res.hasher.Write(eventIDBytes)
-	res.hasher.Write([]byte{':'})
+	res.hasher.Write(colonByte)
 	res.hasher.Write(tenantIDBytes)
-	res.hasher.Write([]byte{':'})
+	res.hasher.Write(colonByte)
 	res.hasher.Write(strconv.AppendInt(res.numBuf[:0], timestamp, 10))
-	res.hasher.Write([]byte{':'})
+	res.hasher.Write(colonByte)
 	res.hasher.Write(h.workerIDBytes)
 	auditBytes := res.hasher.Sum(res.auditBuf[:0])
 	hex.Encode(res.hexBuf2[:], auditBytes)
