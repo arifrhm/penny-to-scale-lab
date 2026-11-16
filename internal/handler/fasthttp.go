@@ -7,9 +7,9 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/arifrhm/penny-to-scale-lab/internal/models"
 	"github.com/bytedance/sonic"
 	"github.com/valyala/fasthttp"
-	"github.com/arifrhm/penny-to-scale-lab/internal/models"
 )
 
 // FastHTTPHandler represents V0.4.0 high-performance engine optimization.

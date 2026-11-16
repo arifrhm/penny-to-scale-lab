@@ -11,8 +11,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/valyala/fasthttp"
 	"github.com/arifrhm/penny-to-scale-lab/internal/handler"
+	"github.com/valyala/fasthttp"
 )
 
 func main() {

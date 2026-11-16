@@ -93,7 +93,14 @@ make bench
 
 Run benchmark and auto-append metrics to `CHANGELOG.md`:
 ```bash
-make bench-changelog VERSION=0.1.0 TITLE="Naive Baseline (net/http + encoding/json)"
+make bench-changelog VERSION=0.6.0 TITLE="Lock-Free Ring Buffer Ingestion (LMAX Disruptor Pattern & 0 B/op)"
+```
+
+### 4. Run Local CI & Performance Gatekeeper / Menjalankan CI & Gatekeeper Lokal
+Run full static checks, concurrency race detector, zero-allocation contract guard (0 B/op requirement), and server lifecycle smoke test locally without straining GitHub runners:
+```bash
+make ci
+# Validates gofmt, go vet, go test -race, and ensures strictly 0 B/op and 0 allocs/op on v0.5 & v0.6
 ```
 
 ---

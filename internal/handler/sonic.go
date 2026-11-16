@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/bytedance/sonic"
 	"github.com/arifrhm/penny-to-scale-lab/internal/models"
+	"github.com/bytedance/sonic"
 )
 
 // SonicHandler represents V0.3.0 optimization.

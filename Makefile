@@ -1,4 +1,4 @@
-.PHONY: all build run test bench bench-changelog clean
+.PHONY: all build run test bench bench-changelog ci clean
 
 BINARY_NAME=bin/server
 
@@ -14,6 +14,9 @@ run: build
 
 test:
 	go test -v -race ./internal/...
+
+ci:
+	@bash scripts/ci_test.sh
 
 bench:
 	@bash scripts/bench.sh
